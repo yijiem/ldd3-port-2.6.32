@@ -28,8 +28,6 @@
 #include <linux/tty.h>
 #include <asm/atomic.h>
 #include <linux/list.h>
-#include <linux/sched.h>
-#include <linux/cred.h>
 
 #include "scull.h"        /* local definitions */
 
@@ -105,15 +103,15 @@ static int scull_u_open(struct inode *inode, struct file *filp)
 
 	spin_lock(&scull_u_lock);
 	if (scull_u_count && 
-			(scull_u_owner != current_uid()) &&  /* allow user */
-			(scull_u_owner != current_euid()) && /* allow whoever did su */
+			(scull_u_owner != current->uid) &&  /* allow user */
+			(scull_u_owner != current->euid) && /* allow whoever did su */
 			!capable(CAP_DAC_OVERRIDE)) { /* still allow root */
 		spin_unlock(&scull_u_lock);
 		return -EBUSY;   /* -EPERM would confuse the user */
 	}
 
 	if (scull_u_count == 0)
-		scull_u_owner = current_uid(); /* grab it */
+		scull_u_owner = current->uid; /* grab it */
 
 	scull_u_count++;
 	spin_unlock(&scull_u_lock);
@@ -164,8 +162,8 @@ static spinlock_t scull_w_lock = SPIN_LOCK_UNLOCKED;
 static inline int scull_w_available(void)
 {
 	return scull_w_count == 0 ||
-		scull_w_owner == current_uid() ||
-		scull_w_owner == current_euid() ||
+		scull_w_owner == current->uid ||
+		scull_w_owner == current->euid ||
 		capable(CAP_DAC_OVERRIDE);
 }
 
@@ -183,7 +181,7 @@ static int scull_w_open(struct inode *inode, struct file *filp)
 		spin_lock(&scull_w_lock);
 	}
 	if (scull_w_count == 0)
-		scull_w_owner = current_uid(); /* grab it */
+		scull_w_owner = current->uid; /* grab it */
 	scull_w_count++;
 	spin_unlock(&scull_w_lock);
 

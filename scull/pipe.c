@@ -26,7 +26,6 @@
 #include <linux/fcntl.h>
 #include <linux/poll.h>
 #include <linux/cdev.h>
-#include <linux/sched.h>
 #include <asm/uaccess.h>
 
 #include "scull.h"		/* local definitions */
