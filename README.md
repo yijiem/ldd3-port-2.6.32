@@ -7,3 +7,7 @@ This project ports the example drivers in the Linux Device Drivers 3 (https://lw
 
 Tested under CentOS 6.10 kernel version: 2.6.32-754.el6.x86_64. Note that CentOS 6.10 is still supported until 30 Nov, 2020: https://wiki.centos.org/Download
 
+Build
+-----
+
+$ sh build.sh

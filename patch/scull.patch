@@ -1,0 +1,97 @@
+diff -Nur scull/access.c /home/yijiem/examples/scull/access.c
+--- scull/access.c	2005-01-31 15:31:01.000000000 -0500
++++ scull/access.c	2020-05-15 16:02:26.807000225 -0400
+@@ -28,6 +28,8 @@
+ #include <linux/tty.h>
+ #include <asm/atomic.h>
+ #include <linux/list.h>
++#include <linux/sched.h>
++#include <linux/cred.h>
+ 
+ #include "scull.h"        /* local definitions */
+ 
+@@ -103,15 +105,15 @@
+ 
+ 	spin_lock(&scull_u_lock);
+ 	if (scull_u_count && 
+-			(scull_u_owner != current->uid) &&  /* allow user */
+-			(scull_u_owner != current->euid) && /* allow whoever did su */
++			(scull_u_owner != current_uid()) &&  /* allow user */
++			(scull_u_owner != current_euid()) && /* allow whoever did su */
+ 			!capable(CAP_DAC_OVERRIDE)) { /* still allow root */
+ 		spin_unlock(&scull_u_lock);
+ 		return -EBUSY;   /* -EPERM would confuse the user */
+ 	}
+ 
+ 	if (scull_u_count == 0)
+-		scull_u_owner = current->uid; /* grab it */
++		scull_u_owner = current_uid(); /* grab it */
+ 
+ 	scull_u_count++;
+ 	spin_unlock(&scull_u_lock);
+@@ -162,8 +164,8 @@
+ static inline int scull_w_available(void)
+ {
+ 	return scull_w_count == 0 ||
+-		scull_w_owner == current->uid ||
+-		scull_w_owner == current->euid ||
++		scull_w_owner == current_uid() ||
++		scull_w_owner == current_euid() ||
+ 		capable(CAP_DAC_OVERRIDE);
+ }
+ 
+@@ -181,7 +183,7 @@
+ 		spin_lock(&scull_w_lock);
+ 	}
+ 	if (scull_w_count == 0)
+-		scull_w_owner = current->uid; /* grab it */
++		scull_w_owner = current_uid(); /* grab it */
+ 	scull_w_count++;
+ 	spin_unlock(&scull_w_lock);
+ 
+diff -Nur scull/main.c /home/yijiem/examples/scull/main.c
+--- scull/main.c	2005-01-31 15:31:01.000000000 -0500
++++ scull/main.c	2020-05-15 15:46:59.891000074 -0400
+@@ -14,7 +14,7 @@
+  *
+  */
+ 
+-#include <linux/config.h>
++#include <linux/autoconf.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+diff -Nur scull/Makefile /home/yijiem/examples/scull/Makefile
+--- scull/Makefile	2005-01-31 15:31:01.000000000 -0500
++++ scull/Makefile	2020-05-15 15:44:52.101000111 -0400
+@@ -9,8 +9,8 @@
+   DEBFLAGS = -O2
+ endif
+ 
+-CFLAGS += $(DEBFLAGS)
+-CFLAGS += -I$(LDDINC)
++EXTRA_CFLAGS += $(DEBFLAGS)
++EXTRA_CFLAGS += -I$(LDDINC)
+ 
+ ifneq ($(KERNELRELEASE),)
+ # call from kernel build system
+@@ -35,7 +35,7 @@
+ 	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
+ 
+ depend .depend dep:
+-	$(CC) $(CFLAGS) -M *.c > .depend
++	$(CC) $(EXTRA_CFLAGS) -M *.c > .depend
+ 
+ 
+ ifeq (.depend,$(wildcard .depend))
+diff -Nur scull/pipe.c /home/yijiem/examples/scull/pipe.c
+--- scull/pipe.c	2005-01-31 15:31:01.000000000 -0500
++++ scull/pipe.c	2020-05-15 15:50:52.515000108 -0400
+@@ -26,6 +26,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/poll.h>
+ #include <linux/cdev.h>
++#include <linux/sched.h>
+ #include <asm/uaccess.h>
+ 
+ #include "scull.h"		/* local definitions */
