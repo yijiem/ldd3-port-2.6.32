@@ -10,7 +10,7 @@ Tested under CentOS 6.10 kernel version: 2.6.32-754.el6.x86_64. Note that CentOS
 Build
 -----
 
-This project maintains patches (under ./patch) necessary to correctly build the modules.
+This project maintains patches (under ./patches) necessary to correctly build the modules.
 
 To build simply:
 
