@@ -14,7 +14,7 @@ This project maintains patches (under ./patches) necessary to correctly build th
 
 To build simply:
 
-$ sh build.sh
+$ bash build.sh
 
 Supported modules
 -----
