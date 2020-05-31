@@ -1,0 +1,49 @@
+diff --git misc-progs/inp.c misc-progs/inp.c
+index 282d570..f6ffadc 100644
+--- misc-progs/inp.c
++++ misc-progs/inp.c
+@@ -30,7 +30,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 
+-#include <asm/io.h> /* linux-specific */
++#include <sys/io.h> /* linux-specific */
+ 
+ #ifdef __GLIBC__
+ #  include <sys/perm.h>
+diff --git misc-progs/outp.c misc-progs/outp.c
+index 219d613..e42811f 100644
+--- misc-progs/outp.c
++++ misc-progs/outp.c
+@@ -30,7 +30,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 
+-#include <asm/io.h> /* linux-specific */
++#include <sys/io.h> /* linux-specific */
+ 
+ #ifdef __GLIBC__
+ #  include <sys/perm.h>
+diff --git misc-progs/setlevel.c misc-progs/setlevel.c
+index fec666d..1138ce5 100644
+--- misc-progs/setlevel.c
++++ misc-progs/setlevel.c
+@@ -26,9 +26,6 @@
+ #define __LIBRARY__ /* _syscall3 and friends are only available through this */
+ #include <linux/unistd.h>
+ 
+-/* define the system call, to override the library function */
+-_syscall3(int, syslog, int, type, char *, bufp, int, len);
+-
+ int main(int argc, char **argv)
+ {
+     int level;
+@@ -38,7 +35,7 @@ int main(int argc, char **argv)
+     } else {
+         fprintf(stderr, "%s: need a single arg\n",argv[0]); exit(1);
+     }
+-    if (syslog(8,NULL,level) < 0) {  
++    if (syscall(__NR_syslog, /*type=*/8,/*bufp=*/NULL, /*len=*/level) < 0) {  
+         fprintf(stderr,"%s: syslog(setlevel): %s\n",
+                 argv[0],strerror(errno));
+         exit(1);
